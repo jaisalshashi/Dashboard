@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<!-- html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:#0b0b12;
+  color:white;
+  padding:20px;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* card */
+.card{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:15px;
+}
+
+/* message text */
+.msgText{
+  margin-bottom:10px;
+}
+
+/* button */
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:8px;
+  background:#00f5d4;
+  color:#000;
+  cursor:pointer;
+}
+
+/* empty */
+.empty{
+  text-align:center;
+  opacity:0.6;
+  margin-top:50px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📩 Your Messages</h2>
+
+<div id="list"></div>
+<div id="empty" class="empty">No messages yet 😴</div>
+
+<!-- hidden image card -->
+<div id="imageCard" style="
+position:absolute;
+left:-9999px;
+width:350px;
+padding:25px;
+border-radius:20px;
+background:#0b0b12;
+color:white;
+text-align:center;
+">
+
+  <h3 style="margin-bottom:10px;">Someone sent me 👀</h3>
+  <p id="imgText" style="font-size:16px;"></p>
+
+  <div style="margin-top:15px; font-size:12px; opacity:0.6;">
+    yoursite.com
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+// 🔴 Firebase config daal
+const firebaseConfig = {
+  apiKey: "AIzaSyBGsE_Z0iAKi-53395fE02kTO4SFKnkHY",
+  authDomain: "anonymous-1c3db.firebaseapp.com",
+  projectId: "anonymous-1c3db",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// load messages
+async function loadMsg(){
+  const q = query(collection(db,"messages"), orderBy("time","desc"));
+  const querySnapshot = await getDocs(q);
+
+  let list = document.getElementById("list");
+  let empty = document.getElementById("empty");
+
+  if(querySnapshot.empty){
+    empty.style.display = "block";
+    return;
+  } else {
+    empty.style.display = "none";
+  }
+
+  querySnapshot.forEach(doc => {
+    let div = document.createElement("div");
+    div.className = "card";
+
+    div.innerHTML = `
+      <div class="msgText">${doc.data().text}</div>
+      <button onclick="downloadImg(this)">Download 📥</button>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+loadMsg();
+
+// download image
+window.downloadImg = function(btn){
+  let text = btn.parentElement.querySelector(".msgText").innerText;
+
+  document.getElementById("imgText").innerText = text;
+
+  html2canvas(document.getElementById("imageCard")).then(canvas => {
+    let link = document.createElement("a");
+    link.download = "message.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+}
+</script>
+
+</body>
+</html>
