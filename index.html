@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:#0b0b12;
+  color:white;
+  padding:20px;
+}
+
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.card{
+  background:rgba(255,255,255,0.05);
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:15px;
+}
+
+.msgText{
+  margin-bottom:10px;
+}
+
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:8px;
+  background:#00f5d4;
+  color:#000;
+  cursor:pointer;
+  margin-right:8px;
+}
+
+.empty{
+  text-align:center;
+  opacity:0.6;
+  margin-top:50px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📩 Your Messages</h2>
+
+<div id="list"></div>
+<div id="empty" class="empty">No messages yet 😴</div>
+
+<!-- 🔥 STORY CARD -->
+<div id="storyCard" style="
+position:absolute;
+left:-9999px;
+width:360px;
+height:640px;
+padding:25px;
+border-radius:25px;
+background: linear-gradient(135deg,#0f2027,#2c5364);
+color:white;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+">
+
+  <h2>Someone sent me 👀</h2>
+  <p id="storyText" style="font-size:20px;"></p>
+
+  <div style="position:absolute; bottom:20px; font-size:12px;">
+    yoursite.com
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-pnVuIAGKqFq3zDUL3ekzDKim50WweaA",
+  authDomain: "http://ngll-32e53.firebaseapp.com",
+  projectId: "ngll-32e53"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const username = "suraj"; // change later dynamic
+
+async function loadMsg(){
+
+  const q = query(
+    collection(db,"users",username,"messages"),
+    orderBy("time","desc")
+  );
+
+  const snap = await getDocs(q);
+
+  let list = document.getElementById("list");
+  let empty = document.getElementById("empty");
+
+  if(snap.empty){
+    empty.style.display="block";
+    return;
+  } else {
+    empty.style.display="none";
+  }
+
+  snap.forEach(doc=>{
+
+    let div = document.createElement("div");
+    div.className="card";
+
+    div.innerHTML = `
+      <div class="msgText">${doc.data().text}</div>
+      <button class="downloadBtn">Download 📥</button>
+      <button class="storyBtn">Story 📲</button>
+    `;
+
+    list.appendChild(div);
+  });
+
+  // 🔥 DOWNLOAD IMAGE
+  document.querySelectorAll(".downloadBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      let text = btn.parentElement.querySelector(".msgText").innerText;
+
+      document.getElementById("storyText").innerText = text;
+
+      html2canvas(document.getElementById("storyCard")).then(canvas=>{
+        let link=document.createElement("a");
+        link.download="message.png";
+        link.href=canvas.toDataURL();
+        link.click();
+      });
+    });
+  });
+
+  // 🔥 STORY IMAGE
+  document.querySelectorAll(".storyBtn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+
+      let text = btn.parentElement.querySelector(".msgText").innerText;
+
+      document.getElementById("storyText").innerText = text;
+
+      // random gradient
+      const gradients = [
+        "linear-gradient(135deg,#ff6a00,#ee0979)",
+        "linear-gradient(135deg,#00c6ff,#0072ff)",
+        "linear-gradient(135deg,#1f4037,#99f2c8)"
+      ];
+
+      document.getElementById("storyCard").style.background =
+        gradients[Math.floor(Math.random()*gradients.length)];
+
+      html2canvas(document.getElementById("storyCard")).then(canvas=>{
+        let link=document.createElement("a");
+        link.download="story.png";
+        link.href=canvas.toDataURL();
+        link.click();
+      });
+
+    });
+  });
+
+}
+
+loadMsg();
+
+</script>
+
+</body>
+</html>
