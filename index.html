@@ -104,14 +104,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const username = "suraj"; // change later dynamic
+const username = "suraj";
 
-async function loadMsg(){
-
-  const q = query(
-    collection(db,"users",username,"messages"),
-    orderBy("time","desc")
-  );
+const q = query(
+  collection(db, "users", username, "messages"),
+  orderBy("time", "desc")
+);
 
   const snap = await getDocs(q);
 
